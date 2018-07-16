@@ -92,9 +92,9 @@ async function main() {
 		// Convert the JSON representation of the PDF into a collection of PDF rows.
 
 		console.log(`Parsing document.`);
-		let pdfRows = convertPdfToText(pdf);
+		let rows = convertPdfToText(pdf);
 
-		for (let pdfRow of pdfRows) {
+		for (let row of rows) {
 			// console.log(pdfRow);
 		}
 	});
@@ -215,26 +215,75 @@ function convertPdfToText(pdf) {
         myPages.push(rows);
     };
 
-    // Flatten pages into rows.
+    // Convert the pages into application number rows.
 
-    let rows = [];
+    let applicationNumberRow = null;
+    let applicationNumberRows = [];
 
     for (let pageIndex = 0; pageIndex < myPages.length; pageIndex++) {
         for (let rowIndex = 0; rowIndex < myPages[pageIndex].length; rowIndex++) {
             // Now that each row is made of objects extract the text property from the object.
 
-            let rowEntries = []
             let row = myPages[pageIndex][rowIndex].data;
-            for (let index = 0; index < row.length; index++)
-                rowEntries.push(row[index].text);
 
-            // Append the extracted and ordered text into the return rows.
+            // Ignore the document heading.  Ignore page numbers and ignore column headings.
 
-            rows.push(rowEntries);
+            if (row.length >= 1 &&
+                (row[0].text.trim().startsWith("Development Application Register") ||
+                row[0].text.trim().startsWith("- Page") ||
+                row[0].text.trim() === "Applicant Name" ||
+                row[0].text.trim() === "Address"))
+                continue;
+
+            if (row.length >= 3 && isApplicationNumber(row[2].text.trim())) {
+                // Remember the last application number row that was encountered.  This will be
+                // used to calibrate the positions of the columns (based on their X co-ordinates).
+
+                applicationNumberRow = row;
+                applicationNumberRows.push(applicationNumberRow);
+            }
+            else if (applicationNumberRow !== null) {
+                for (let index = 0; index < row.length; index++) {
+                    // Determine which column the current cell lines up with in the previously
+                    // encountered application number row.  Add the text to that cell.
+
+                    let haveFoundColumn = false;
+                    for (let columnIndex = 0; columnIndex < applicationNumberRow.length; columnIndex++) {
+                        if (Math.abs(applicationNumberRow[columnIndex].x - row[index].x) < 0.1) {  // arbitrary small value
+                            applicationNumberRow[columnIndex].text += "\n" + row[index].text;
+                            haveFoundColumn = true;
+                            break;
+                        }
+                    }
+                    
+                    // Report any text for which an appropriate column was not found.
+
+                    if (!haveFoundColumn)
+                        console.log(`Ignored the text "${row[index].text}" from the row: ${row}`);
+                }
+            }
         };
     };
 
+    // Remove the X co-ordinate information, to just return the resulting text for each cell.
+
+    let rows = [];
+
+    for (let rowIndex = 0; rowIndex < applicationNumberRows.length; rowIndex++) {
+        let row = [];
+        for (let columnIndex = 0; columnIndex < applicationNumberRows[rowIndex].length; columnIndex++)
+            row.push(applicationNumberRows[rowIndex][columnIndex].text);
+        rows.push(row);
+    }
+
     return rows;
+}
+
+// Determines whether the specified text represents an application number.  A strict format of
+// "nn/n", "nn/nn", "nn/nnn" or "nn/nnnn" is assumed.  For example, "17/67" or "17/1231".
+
+function isApplicationNumber(text) {
+    return /^[0-9][0-9]\/[0-9]{1,4}$/.test(text)
 }
 
 main().catch(error => console.error(error));
