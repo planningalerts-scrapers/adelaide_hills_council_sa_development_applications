@@ -236,8 +236,6 @@ function convertPdfToText(pdf) {
 
     for (let pageIndex = 0; pageIndex < myPages.length; pageIndex++) {
         for (let rowIndex = 0; rowIndex < myPages[pageIndex].length; rowIndex++) {
-            // Now that each row is made of objects extract the text property from the object.
-
             let row = myPages[pageIndex][rowIndex].data;
 
             // Ignore the document heading.  Ignore page numbers and ignore column headings.
