@@ -88,15 +88,29 @@ async function main() {
 	let pdfParser = new pdf2json();
 	let pdfPipe = request({ url: pdfUrl.href, encoding: null }).pipe(pdfParser);
 	pdfPipe.on("pdfParser_dataError", error => console.error(error))
-	pdfPipe.on("pdfParser_dataReady", pdf => {
-		// Convert the JSON representation of the PDF into a collection of PDF rows.
+	pdfPipe.on("pdfParser_dataReady", async pdf => {
+        try
+        {
+            // Convert the JSON representation of the PDF into a collection of PDF rows.
 
-		console.log(`Parsing document.`);
-		let rows = convertPdfToText(pdf);
+            console.log(`Parsing document.`);
+            let rows = convertPdfToText(pdf);
 
-		for (let row of rows) {
-			// console.log(pdfRow);
-		}
+            for (let row of rows) {
+                let receivedDate = moment(row[3].trim(), "D/MM/YYYY", true);  // allows the leading zero of the day to be omitted
+                await insertRow(database, {
+                    applicationNumber: row[2].trim(),
+                    address: row[1].trim(),
+                    reason: row[5].trim(),
+                    informationUrl: pdfUrl.href,
+                    commentUrl: CommentUrl,
+                    scrapeDate: moment().format("YYYY-MM-DD"),
+                    receivedDate: receivedDate.isValid ? receivedDate.format("YYYY-MM-DD") : ""
+                });
+            }
+        } catch (ex) {
+            console.error(ex);
+        }
 	});
 }
 
