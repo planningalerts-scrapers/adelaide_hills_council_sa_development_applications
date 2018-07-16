@@ -89,8 +89,7 @@ async function main() {
 	let pdfPipe = request({ url: pdfUrl.href, encoding: null }).pipe(pdfParser);
 	pdfPipe.on("pdfParser_dataError", error => console.error(error))
 	pdfPipe.on("pdfParser_dataReady", async pdf => {
-        try
-        {
+        try {
             // Convert the JSON representation of the PDF into a collection of PDF rows.
 
             console.log(`Parsing document.`);
