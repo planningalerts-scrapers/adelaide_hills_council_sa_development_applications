@@ -64,31 +64,31 @@ async function main() {
 
     // Retrieve the page contain the link to the PDF.
 
-	console.log(`Retrieving page: ${DevelopmentApplicationsUrl}`);
+    console.log(`Retrieving page: ${DevelopmentApplicationsUrl}`);
     let body = await request(DevelopmentApplicationsUrl);
     let $ = cheerio.load(body);
 
-	let relativePdfUrl = null;
-	$("a[href$='.pdf']").each((index, element) => {
-		if ($(element).text() === "Development Applications Register")
-		    relativePdfUrl = element.attribs.href;
-	});
+    let relativePdfUrl = null;
+    $("a[href$='.pdf']").each((index, element) => {
+        if ($(element).text() === "Development Applications Register")
+            relativePdfUrl = element.attribs.href;
+    });
 
-	if (relativePdfUrl === null) {
-		console.log("Could not find a link to the PDF that contains the development applications.");
-		return;
-	}
+    if (relativePdfUrl === null) {
+        console.log("Could not find a link to the PDF that contains the development applications.");
+        return;
+    }
 
-	let pdfUrl = new urlparser.URL(relativePdfUrl, DevelopmentApplicationsUrl)
-	console.log(`Retrieving document: ${pdfUrl.href}`);
+    let pdfUrl = new urlparser.URL(relativePdfUrl, DevelopmentApplicationsUrl);
+    console.log(`Retrieving document: ${pdfUrl.href}`);
 
-	// Parse the PDF into a collection of PDF rows.  Each PDF row is simply an array of strings,
-	// being the text that has been parsed from the PDF.
+    // Parse the PDF into a collection of PDF rows.  Each PDF row is simply an array of strings,
+    // being the text that has been parsed from the PDF.
 
-	let pdfParser = new pdf2json();
-	let pdfPipe = request({ url: pdfUrl.href, encoding: null }).pipe(pdfParser);
-	pdfPipe.on("pdfParser_dataError", error => console.error(error))
-	pdfPipe.on("pdfParser_dataReady", async pdf => {
+    let pdfParser = new pdf2json();
+    let pdfPipe = request({ url: pdfUrl.href, encoding: null }).pipe(pdfParser);
+    pdfPipe.on("pdfParser_dataError", error => console.error(error))
+    pdfPipe.on("pdfParser_dataReady", async pdf => {
         try {
             // Convert the JSON representation of the PDF into a collection of PDF rows.
 
@@ -110,7 +110,7 @@ async function main() {
         } catch (ex) {
             console.error(ex);
         }
-	});
+    });
 }
 
 // Convert a parsed PDF into an array of rows.  This function is based on pdf2table by Sam Decrock.
