@@ -30,7 +30,7 @@ async function initializeDatabase() {
 
 async function insertRow(database, developmentApplication) {
     return new Promise((resolve, reject) => {
-        let sqlStatement = database.prepare("insert or ignore into [data] values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        let sqlStatement = database.prepare("insert or replace into [data] values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
         sqlStatement.run([
             developmentApplication.applicationNumber,
             developmentApplication.address,
@@ -47,7 +47,7 @@ async function insertRow(database, developmentApplication) {
                 reject(error);
             } else {
                 if (this.changes > 0)
-                    console.log(`    Inserted new application \"${developmentApplication.applicationNumber}\" into the database.`);
+                    console.log(`    Inserted application \"${developmentApplication.applicationNumber}\" into the database.`);
                 sqlStatement.finalize();  // releases any locks
                 resolve(row);
             }
@@ -99,8 +99,8 @@ async function main() {
                 let receivedDate = moment(row[3].trim(), "D/MM/YYYY", true);  // allows the leading zero of the day to be omitted
                 await insertRow(database, {
                     applicationNumber: row[2].trim(),
-                    address: row[1].trim(),
-                    reason: row[5].trim(),
+                    address: row[4].replace(/\r/g, " ").replace(/\n/g, " ").replace(/\s\s+/g, " ").trim(),
+                    reason: row[5].replace(/\r/g, " ").replace(/\n/g, " ").replace(/\s\s+/g, " ").trim(),
                     informationUrl: pdfUrl.href,
                     commentUrl: CommentUrl,
                     scrapeDate: moment().format("YYYY-MM-DD"),
@@ -243,6 +243,7 @@ function convertPdfToText(pdf) {
                 (row[0].text.trim().startsWith("Development Application Register") ||
                 row[0].text.trim().startsWith("- Page") ||
                 row[0].text.trim() === "Applicant Name" ||
+                row[0].text.trim() === "Application" ||
                 row[0].text.trim() === "Address"))
                 continue;
 
@@ -269,8 +270,12 @@ function convertPdfToText(pdf) {
                     
                     // Report any text for which an appropriate column was not found.
 
-                    if (!haveFoundColumn)
-                        console.log(`Ignored the text "${row[index].text}" from the row: ${row}`);
+                    if (!haveFoundColumn) {
+                        if (applicationNumberRow === null)
+                            console.log(`Ignored the text "${row[index].text}".`);
+                        else
+                            console.log(`Ignored the text "${row[index].text}".  The previous application was: ${applicationNumberRow.map(cell => cell.text).join(" ").replace(/\r/g, " ").replace(/\n/g, " ")}`);
+                    }
                 }
             }
         };
