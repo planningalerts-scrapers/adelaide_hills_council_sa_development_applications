@@ -30,11 +30,11 @@ async function initializeDatabase() {
 
 async function insertRow(database, developmentApplication) {
     return new Promise((resolve, reject) => {
-        let sqlStatement = database.prepare("insert or replace into [data] values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        let sqlStatement = database.prepare("insert or ignore into [data] values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
         sqlStatement.run([
             developmentApplication.applicationNumber,
             developmentApplication.address,
-            developmentApplication.reason,
+            developmentApplication.description,
             developmentApplication.informationUrl,
             developmentApplication.commentUrl,
             developmentApplication.scrapeDate,
@@ -47,7 +47,9 @@ async function insertRow(database, developmentApplication) {
                 reject(error);
             } else {
                 if (this.changes > 0)
-                    console.log(`    Inserted application \"${developmentApplication.applicationNumber}\" into the database.`);
+                    console.log(`    Inserted: application \"${developmentApplication.applicationNumber}\" with address \"${developmentApplication.address}\" and description \"${developmentApplication.description}\" into the database.`);
+                else
+                    console.log(`    Skipped: application \"${developmentApplication.applicationNumber}\" with address \"${developmentApplication.address}\" and description \"${developmentApplication.description}\" because it was already present in the database.`);
                 sqlStatement.finalize();  // releases any locks
                 resolve(row);
             }
@@ -100,7 +102,7 @@ async function main() {
                 await insertRow(database, {
                     applicationNumber: row[2].trim(),
                     address: row[4].replace(/\r/g, " ").replace(/\n/g, " ").replace(/\s\s+/g, " ").trim(),
-                    reason: row[5].replace(/\r/g, " ").replace(/\n/g, " ").replace(/\s\s+/g, " ").trim(),
+                    description: row[5].replace(/\r/g, " ").replace(/\n/g, " ").replace(/\s\s+/g, " ").trim(),
                     informationUrl: pdfUrl.href,
                     commentUrl: CommentUrl,
                     scrapeDate: moment().format("YYYY-MM-DD"),
