@@ -72,7 +72,7 @@ async function main() {
 
     let relativePdfUrl = null;
     $("a[href$='.pdf']").each((index, element) => {
-        if ($(element).text() === "Development Applications Register")
+        if ($(element).text().includes("Register"))
             relativePdfUrl = element.attribs.href;
     });
 
