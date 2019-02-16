@@ -11,7 +11,7 @@ let pdf2json = require("pdf2json");
 let urlparser = require("url");
 let moment = require("moment");
 
-const DevelopmentApplicationsUrl = "https://www.ahc.sa.gov.au/Resident/planning-and-building/the-development-process/development-applications/development-applications-register";
+const DevelopmentApplicationsUrl = "https://www.ahc.sa.gov.au/Resident/planning-and-building/development-applications/development-applications-register";
 const CommentUrl = "mailto:mail@ahc.sa.gov.au";
 
 // Sets up an sqlite database.
@@ -71,9 +71,10 @@ async function main() {
     let $ = cheerio.load(body);
 
     let relativePdfUrl = null;
-    $("a[href$='.pdf']").each((index, element) => {
-        if ($(element).text().includes("Register"))
-            relativePdfUrl = element.attribs.href;
+    $("a").each((index, element) => {
+        if (element.attribs.href.toLowerCase().includes(".pdf"))
+            if ($(element).text().includes("Register"))
+                relativePdfUrl = element.attribs.href;
     });
 
     if (relativePdfUrl === null) {
