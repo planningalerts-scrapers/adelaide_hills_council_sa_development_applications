@@ -11,7 +11,7 @@ let pdf2json = require("pdf2json");
 let urlparser = require("url");
 let moment = require("moment");
 
-const DevelopmentApplicationsUrl = "https://www.ahc.sa.gov.au/Resident/planning-and-building/development-applications/development-applications-register";
+const DevelopmentApplicationsUrl = "https://www.ahc.sa.gov.au/ahc-resident/Pages/Planning-and-Building/Current-Development-Applications.aspx";
 const CommentUrl = "mailto:mail@ahc.sa.gov.au";
 
 // Sets up an sqlite database.
