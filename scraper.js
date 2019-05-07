@@ -11,7 +11,7 @@ let pdf2json = require("pdf2json");
 let urlparser = require("url");
 let moment = require("moment");
 
-const DevelopmentApplicationsUrl = "https://www.ahc.sa.gov.au/Resident/planning-and-building/development-applications/development-applications-register";
+const DevelopmentApplicationsUrl = "https://www.ahc.sa.gov.au/Resident/planning-and-building/current-development-applications";
 const CommentUrl = "mailto:mail@ahc.sa.gov.au";
 
 // Sets up an sqlite database.
@@ -107,7 +107,7 @@ async function main() {
                     informationUrl: pdfUrl.href,
                     commentUrl: CommentUrl,
                     scrapeDate: moment().format("YYYY-MM-DD"),
-                    receivedDate: receivedDate.isValid ? receivedDate.format("YYYY-MM-DD") : ""
+                    receivedDate: receivedDate.isValid() ? receivedDate.format("YYYY-MM-DD") : ""
                 });
             }
         } catch (ex) {
